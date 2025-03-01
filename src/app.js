@@ -1,13 +1,18 @@
 const express = require("express");
 const app = express(); //instance of an express js application
 const connectDB = require("./config/database");
+const cors = require("cors");
+const http = require("http");
+require("dotenv").config();
 const User = require("./models/user");
 const cookieParser = require("cookie-parser");
 const authRouter = require("./routes/auth");
 const profileRouter = require("./routes/profile");
 const requestRouter = require("./routes/requests");
 const userRouter = require("./routes/user");
-const cors = require("cors");
+const paymentRouter = require("./routes/payment");
+const initializeSocket = require("./utils/socket");
+const chatRouter = require("./routes/chat");
 
 app.use(cors({
   origin: "http://localhost:5173",
@@ -21,6 +26,8 @@ app.use("/",authRouter);
 app.use("/",profileRouter);
 app.use("/",requestRouter);
 app.use("/",userRouter);
+app.use("/",paymentRouter);
+app.use("/", chatRouter);
 
 
 // Get user by email
@@ -92,10 +99,13 @@ app.put("/user/:userId", async (req, res) => {
   }
 });
 
+const server = http.createServer(app);
+initializeSocket(server);
+
 connectDB()
   .then(() => {
     console.log("Database connection established!!");
-    app.listen(3000, () => {
+    server.listen(3000, () => {
       console.log("Server is listening on the port : 3000");
     });
   })
